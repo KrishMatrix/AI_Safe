@@ -1,3 +1,5 @@
+# AI_Safe
+
 # URL Security Scanner
 
 A machine learning-based URL security scanner that analyzes URLs and HTML content to detect potential malicious threats.
