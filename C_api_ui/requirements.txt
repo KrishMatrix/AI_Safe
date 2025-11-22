@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+joblib
+numpy
+shap
+requests
+beautifulsoup4
+tldextract
+python-multipart
+lightgbm
+

@@ -1,0 +1,15 @@
+# B_dynamic_fetcher/docker-compose.yml
+version: "3.8"
+services:
+  fetcher:
+    build: .
+    image: url-fetcher:latest
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # Use an isolated network; by default compose creates one.
+    # You can also set network_mode: "none" to block network from container (then dynamic_fetch won't work)
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Example: run container with CLI parameter; use docker-compose run fetcher <url>
