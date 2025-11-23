@@ -41,7 +41,7 @@ model = joblib.load(MODEL_PATH)
 feature_order = joblib.load(FEATURE_ORDER_PATH)
 
 # Initialize OpenAI client
-OPENAI_API_KEY = "Put API Key Here"
+OPENAI_API_KEY = "api key here"
 
 if not OPENAI_API_KEY:
     print("WARNING: OPENAI_API_KEY not set. ChatGPT decision will not work.")
