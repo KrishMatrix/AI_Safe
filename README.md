@@ -12,14 +12,15 @@ A machine learning-based URL security scanner that analyzes URLs and HTML conten
 
 ## Features
 
-- 🎯 Machine learning-based threat detection using LightGBM
-- 🔍 Static feature extraction from URLs and HTML content
-- 🌐 Dynamic content fetching with Playwright
-- 📊 SHAP explanations for model predictions
-- 🎨 Modern, responsive web UI
-- 🐳 Dockerized dynamic fetcher for safe execution
+- Machine learning-based threat detection using LightGBM
+-  Static feature extraction from URLs and HTML content
+-  Dynamic content fetching with Playwright
+- SHAP explanations for model predictions
+-  Modern, responsive web UI
+-  Dockerized dynamic fetcher for safe execution
 
 ## Setup
+##Add api key in app.py file (line 40 )
 
 ### Part A: Static Scanner
 
