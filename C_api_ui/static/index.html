@@ -1,555 +1,159 @@
-<!DOCTYPE html>
-<html lang="en">
+<!-- C_api_ui/static/index.html -->
+<!doctype html>
+<html>
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>URL Security Scanner</title>
+  <title>URL Scanner PoC — Review & Decisions</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
-      color: #333;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .header {
-      text-align: center;
-      color: white;
-      margin-bottom: 40px;
-      animation: fadeInDown 0.6s ease-out;
-    }
-
-    .header h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 10px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .header p {
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
-
-    .card {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      padding: 30px;
-      margin-bottom: 30px;
-      animation: fadeInUp 0.6s ease-out;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #555;
-      font-size: 0.95rem;
-    }
-
-    .input-wrapper {
-      display: flex;
-      gap: 12px;
-      align-items: stretch;
-    }
-
-    input[type="text"],
-    textarea {
-      flex: 1;
-      padding: 14px 18px;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-      font-family: inherit;
-    }
-
-    input[type="text"]:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-    }
-
-    textarea {
-      min-height: 150px;
-      resize: vertical;
-    }
-
-    .btn {
-      padding: 14px 32px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .result-card {
-      display: none;
-      animation: fadeIn 0.5s ease-out;
-    }
-
-    .result-card.show {
-      display: block;
-    }
-
-    .score-section {
-      text-align: center;
-      padding: 30px;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      border-radius: 12px;
-      margin-bottom: 30px;
-    }
-
-    .score-value {
-      font-size: 3.5rem;
-      font-weight: 700;
-      margin: 20px 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .risk-badge {
-      display: inline-block;
-      padding: 12px 24px;
-      border-radius: 50px;
-      font-weight: 600;
-      font-size: 1.1rem;
-      margin-top: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-
-    .risk-high {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      color: white;
-    }
-
-    .risk-low {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      color: white;
-    }
-
-    .risk-medium {
-      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-      color: white;
-    }
-
-    .features-section {
-      margin-top: 30px;
-    }
-
-    .section-title {
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin-bottom: 20px;
-      color: #333;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-title::before {
-      content: '';
-      width: 4px;
-      height: 24px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 2px;
-    }
-
-    .feature-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-
-    .feature-item {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 10px;
-      border-left: 4px solid #667eea;
-      transition: all 0.3s ease;
-    }
-
-    .feature-item:hover {
-      transform: translateX(5px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .feature-name {
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 5px;
-      font-size: 0.9rem;
-    }
-
-    .feature-value {
-      font-size: 1.1rem;
-      color: #333;
-      font-weight: 500;
-    }
-
-    .contributions-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .contribution-item {
-      background: #f8f9fa;
-      padding: 15px 20px;
-      border-radius: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-left: 4px solid transparent;
-      transition: all 0.3s ease;
-    }
-
-    .contribution-item.positive {
-      border-left-color: #4caf50;
-      background: linear-gradient(90deg, #e8f5e9 0%, #f8f9fa 100%);
-    }
-
-    .contribution-item.negative {
-      border-left-color: #f44336;
-      background: linear-gradient(90deg, #ffebee 0%, #f8f9fa 100%);
-    }
-
-    .contribution-name {
-      font-weight: 600;
-      color: #333;
-      flex: 1;
-    }
-
-    .contribution-value {
-      font-weight: 700;
-      font-size: 1.1rem;
-      padding: 6px 12px;
-      border-radius: 6px;
-      min-width: 80px;
-      text-align: right;
-    }
-
-    .contribution-value.positive {
-      color: #2e7d32;
-      background: #c8e6c9;
-    }
-
-    .contribution-value.negative {
-      color: #c62828;
-      background: #ffcdd2;
-    }
-
-    .error-message {
-      background: #ffebee;
-      color: #c62828;
-      padding: 20px;
-      border-radius: 10px;
-      border-left: 4px solid #f44336;
-      margin-top: 20px;
-    }
-
-    .loading {
-      display: none;
-      text-align: center;
-      padding: 20px;
-    }
-
-    .loading.show {
-      display: block;
-    }
-
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #667eea;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 15px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes fadeInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .url-display {
-      background: #f0f0f0;
-      padding: 12px 18px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      word-break: break-all;
-      font-family: 'Courier New', monospace;
-      font-size: 0.9rem;
-      color: #555;
-    }
-
-    @media (max-width: 768px) {
-      .input-wrapper {
-        flex-direction: column;
-      }
-
-      .btn {
-        width: 100%;
-      }
-
-      .score-value {
-        font-size: 2.5rem;
-      }
-
-      .feature-list {
-        grid-template-columns: 1fr;
-      }
-    }
+    body { font-family: Inter, Arial, sans-serif; margin: 28px; max-width: 1100px; }
+    input[type="text"]{ width: 60%; padding:8px; }
+    textarea{ width: 80%; height: 160px; }
+    .result { margin-top: 18px; border: 1px solid #eee; padding: 14px; border-radius: 8px; }
+    button { padding: 8px 12px; margin-left:8px; }
+    .badge { font-weight:600; padding:6px 10px; border-radius:6px; }
+    .danger { background:#c62828; color:white; }
+    .ok { background:#2e7d32; color:white; }
+    .controls { margin-top:10px; }
+    .chart-card { margin-top: 20px; padding: 12px; border: 1px solid #eee; border-radius:8px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>🔒 URL Security Scanner</h1>
-      <p>Analyze URLs for potential security threats using machine learning</p>
-    </div>
+  <h1>URL Static Scanner — PoC</h1>
 
-    <div class="card">
-      <form id="scanForm">
-        <div class="form-group">
-          <label for="url">Enter URL to Scan</label>
-          <div class="input-wrapper">
-            <input type="text" id="url" placeholder="https://example.com" />
-            <button type="button" id="scanBtn" class="btn">🔍 Scan URL</button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="html">Or Paste HTML Content (Optional)</label>
-          <textarea id="html" placeholder="Paste HTML content here if you have it..."></textarea>
-        </div>
-      </form>
-
-      <div class="loading" id="loading">
-        <div class="spinner"></div>
-        <p>Analyzing URL...</p>
-      </div>
-
-      <div class="error-message" id="error" style="display: none;"></div>
-    </div>
-
-    <div class="card result-card" id="resultCard">
-      <div class="score-section">
-        <h3 style="margin-bottom: 10px; color: #666;">Risk Score</h3>
-        <div class="score-value" id="scoreValue">0.000</div>
-        <div id="riskBadge"></div>
-      </div>
-
-      <div class="url-display" id="urlDisplay"></div>
-
-      <div class="features-section">
-        <div class="section-title">Top Feature Contributions</div>
-        <div class="contributions-list" id="contributionsList"></div>
-      </div>
-
-      <div class="features-section">
-        <div class="section-title">Extracted Features</div>
-        <div class="feature-list" id="featuresList"></div>
-      </div>
-    </div>
+  <div>
+    <label>URL:</label>
+    <input id="url" type="text" placeholder="https://example.com" />
+    <button id="scanBtn">Scan</button>
   </div>
 
-  <script>
-    document.getElementById("scanBtn").onclick = async function() {
-      const url = document.getElementById("url").value.trim();
-      const html = document.getElementById("html").value.trim();
-      
-      if (!url) {
-        alert("Please enter a URL to scan");
-        return;
+  <div style="margin-top:12px;">
+    <label>Paste HTML (optional, use output from sandboxed fetcher):</label><br/>
+    <textarea id="html" placeholder="optional HTML (use for sandboxed-safe workflow)"></textarea>
+  </div>
+
+  <div id="scanResult" class="result" style="display:none;"></div>
+
+  <div class="controls" style="display:none;" id="decisionControls">
+    <button id="markValid" class="ok">Mark VALID</button>
+    <button id="markUnvalid" class="danger">Mark UNVALID</button>
+  </div>
+
+  <div class="chart-card">
+    <h3>Decisions (last 30 days)</h3>
+    <canvas id="decisionsChart" width="800" height="250"></canvas>
+    <div style="margin-top:12px;"><strong>Totals:</strong> <span id="totalsText">—</span></div>
+  </div>
+
+<script>
+async function fetchStatsAndRender(){
+  const r = await fetch('/stats');
+  const data = await r.json();
+  // build labels and datasets
+  const labels = data.timeseries.map(d => d.day);
+  const validData = data.timeseries.map(d => d.valid);
+  const unvalidData = data.timeseries.map(d => d.unvalid);
+  const ctx = document.getElementById('decisionsChart').getContext('2d');
+  // destroy old chart if present
+  if(window._decisionsChart) window._decisionsChart.destroy();
+  window._decisionsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Valid', data: validData, stack: 'stack1' },
+        { label: 'Unvalid', data: unvalidData, stack: 'stack1' }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: { stacked: true },
+        y: { stacked: true, beginAtZero: true }
       }
-
-      // Reset UI
-      document.getElementById("resultCard").classList.remove("show");
-      document.getElementById("error").style.display = "none";
-      document.getElementById("loading").classList.add("show");
-      document.getElementById("scanBtn").disabled = true;
-
-      try {
-        const form = new FormData();
-        form.append("url", url);
-        if (html) form.append("html", html);
-
-        const resp = await fetch("/score", { method: "POST", body: form });
-        const data = await resp.json();
-
-        document.getElementById("loading").classList.remove("show");
-        document.getElementById("scanBtn").disabled = false;
-
-        if (data.error) {
-          document.getElementById("error").style.display = "block";
-          document.getElementById("error").textContent = `Error: ${data.error.message || JSON.stringify(data)}`;
-          return;
-        }
-
-        // Display results
-        displayResults(data);
-      } catch (error) {
-        document.getElementById("loading").classList.remove("show");
-        document.getElementById("scanBtn").disabled = false;
-        document.getElementById("error").style.display = "block";
-        document.getElementById("error").textContent = `Error: ${error.message}`;
-      }
-    };
-
-    function displayResults(data) {
-      const score = data.score;
-      const scoreValue = document.getElementById("scoreValue");
-      const riskBadge = document.getElementById("riskBadge");
-      const urlDisplay = document.getElementById("urlDisplay");
-      const contributionsList = document.getElementById("contributionsList");
-      const featuresList = document.getElementById("featuresList");
-
-      // Display score
-      scoreValue.textContent = score.toFixed(3);
-
-      // Determine risk level and badge
-      let riskClass, riskText;
-      if (score >= 0.7) {
-        riskClass = "risk-high";
-        riskText = "⚠️ High Risk";
-      } else if (score >= 0.4) {
-        riskClass = "risk-medium";
-        riskText = "⚡ Medium Risk";
-      } else {
-        riskClass = "risk-low";
-        riskText = "✓ Low Risk";
-      }
-
-      riskBadge.innerHTML = `<span class="risk-badge ${riskClass}">${riskText}</span>`;
-
-      // Display URL
-      urlDisplay.textContent = `Scanned: ${data.url}`;
-
-      // Display feature contributions
-      contributionsList.innerHTML = "";
-      if (data.top_feature_contributions && data.top_feature_contributions.length > 0) {
-        data.top_feature_contributions.forEach(([name, value]) => {
-          const item = document.createElement("div");
-          item.className = `contribution-item ${value >= 0 ? 'positive' : 'negative'}`;
-          
-          const nameSpan = document.createElement("span");
-          nameSpan.className = "contribution-name";
-          nameSpan.textContent = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-          const valueSpan = document.createElement("span");
-          valueSpan.className = `contribution-value ${value >= 0 ? 'positive' : 'negative'}`;
-          valueSpan.textContent = (value >= 0 ? '+' : '') + value.toFixed(4);
-
-          item.appendChild(nameSpan);
-          item.appendChild(valueSpan);
-          contributionsList.appendChild(item);
-        });
-      }
-
-      // Display extracted features
-      featuresList.innerHTML = "";
-      if (data.features) {
-        Object.entries(data.features).forEach(([name, value]) => {
-          const item = document.createElement("div");
-          item.className = "feature-item";
-
-          const nameDiv = document.createElement("div");
-          nameDiv.className = "feature-name";
-          nameDiv.textContent = name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-
-          const valueDiv = document.createElement("div");
-          valueDiv.className = "feature-value";
-          valueDiv.textContent = typeof value === 'number' ? value.toFixed(2) : value;
-
-          item.appendChild(nameDiv);
-          item.appendChild(valueDiv);
-          featuresList.appendChild(item);
-        });
-      }
-
-      // Show result card
-      document.getElementById("resultCard").classList.add("show");
-      
-      // Smooth scroll to results
-      document.getElementById("resultCard").scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  });
+  document.getElementById("totalsText").innerText = `Total ${data.total} — Valid ${data.valid_count} — Unvalid ${data.unvalid_count}`;
+}
 
-    // Allow Enter key to submit
-    document.getElementById("url").addEventListener("keypress", function(e) {
-      if (e.key === "Enter") {
-        document.getElementById("scanBtn").click();
-      }
-    });
-  </script>
+document.getElementById("scanBtn").onclick = async () => {
+  const url = document.getElementById("url").value;
+  const html = document.getElementById("html").value;
+  if(!url){ alert("Enter a url"); return; }
+  const form = new FormData();
+  form.append("url", url);
+  if(html) form.append("html", html);
+  const resp = await fetch("/score", { method: "POST", body: form });
+  const data = await resp.json();
+  const panel = document.getElementById("scanResult");
+  if(data.error){
+    panel.style.display = "block";
+    panel.innerText = "Error: " + JSON.stringify(data);
+    document.getElementById("decisionControls").style.display = "none";
+    return;
+  }
+  panel.style.display = "block";
+  document.getElementById("decisionControls").style.display = "block";
+  
+  // Show ChatGPT decision
+  const decision = data.chatgpt_decision || "error";
+  const confidence = data.confidence || "medium";
+  const reasoning = data.reasoning || "No reasoning provided";
+  
+  let decisionBadge = "";
+  if (decision === "valid") {
+    decisionBadge = '<span class="badge ok">✓ VALID (Safe)</span>';
+  } else if (decision === "unvalid") {
+    decisionBadge = '<span class="badge danger">✗ UNVALID (Suspicious)</span>';
+  } else {
+    decisionBadge = '<span class="badge" style="background:#ff9800; color:white;">⚠ Error</span>';
+  }
+  
+  const confidenceBadge = `<span style="font-size:0.9em; color:#666;">Confidence: ${confidence}</span>`;
+  
+  panel.innerHTML = `
+    <div><strong>URL:</strong> ${data.url}</div>
+    <div style="margin-top:10px;"><strong>Decision:</strong> ${decisionBadge} ${confidenceBadge}</div>
+    <div style="margin-top:10px;"><strong>Reasoning:</strong> <em>${reasoning}</em></div>
+    <div style="margin-top:12px;"><strong>Extracted Features:</strong>
+      <pre id="feats" style="max-height:180px; overflow:auto; font-size:0.85em;">${JSON.stringify(data.features, null, 2)}</pre>
+    </div>
+    <div style="margin-top:8px;"><small>Review the decision and confirm with VALID or UNVALID.</small></div>
+  `;
+  // attach data for decision buttons
+  window._last_scan = data;
+};
+
+async function submitDecision(decision){
+  if(!window._last_scan){ alert("No scan result to submit"); return; }
+  const payload = {
+    url: window._last_scan.url,
+    chatgpt_decision: window._last_scan.chatgpt_decision,
+    human_decision: decision,
+    features: window._last_scan.features,
+    evidence: { submitted_at: new Date().toISOString() }
+  };
+  const r = await fetch('/submit_decision', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+  const data = await r.json();
+  if(data.status === 'ok'){
+    alert("Decision saved ✔");
+    fetchStatsAndRender();
+  } else {
+    alert("Error saving decision: " + JSON.stringify(data));
+  }
+}
+
+document.getElementById("markValid").onclick = () => submitDecision("valid");
+document.getElementById("markUnvalid").onclick = () => submitDecision("unvalid");
+
+// initial chart load
+fetchStatsAndRender();
+// refresh chart every 60s
+setInterval(fetchStatsAndRender, 60*1000);
+</script>
 </body>
 </html>
