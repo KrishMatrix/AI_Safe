@@ -48,10 +48,10 @@ cd C_api_ui
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-uvicorn app:app --reload --port 8000
+uvicorn app:app --reload --port 8001
 ```
 
-Then open http://localhost:8000/ in your browser.
+Then open http://localhost:8001/ in your browser.
 
 ## Usage
 
